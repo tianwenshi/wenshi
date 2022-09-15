@@ -66,14 +66,27 @@ def get_sampling(poly_reg,data_y_max,sample_n):
     def accept():
         # 拒绝采样
         while True:
-            x = random.uniform(data_x_min,data_x_max)
-            y = random.uniform(0,c*u_p)
-            poly_reg_y = poly_reg.predict(np.array([x]).reshape(-1,1)).reshape(-1).tolist()[0]
-            if y <= poly_reg_y:
-                return int(x)
+            x_1 = random.randint(data_x_min,data_x_max)
+            poly_reg_y_1 = poly_reg.predict(np.array([x_1]).reshape(-1,1)).reshape(-1).tolist()[0]
+            count_temp =0
+            while True:
+                y = random.uniform(0, c * u_p)
+                if y<= poly_reg_y_1:
+                   count_temp +=1
+                else:
+                    break
+                if count_temp>=judge_n:
+                    return x_1
+
+
     samples = []
-    for i in range(sample_n):
-        samples.append(accept())
+    while True:
+        x_1 = accept()
+        samples.append(x_1)
+        if len(samples)%1000==0:
+            print(f"samples len:{len(samples)}")
+        if len(samples)>= sample_n:
+            break
     return samples
 
 
@@ -107,16 +120,48 @@ def write_samples(samples):
             else:
                 f.write(str(samples[i])+"\n")
 
+def get_list_element_count(list_temp):
+    dict_temp = {}
+    for data in list_temp:
+        if data in dict_temp:
+            dict_temp[data] += 1
+        else:
+            dict_temp[data] = 1
+    data_x = list(dict_temp.keys())
+    data_y = [dict_temp[data] for data in data_x]
+    return data_x,data_y
+
+def draw_samples(sample_split):
+    draw_n = 1
+    start_index = 0
+    while True:
+        end_index = start_index+sample_split
+        print(f"draw_n:{draw_n},start_index:{start_index},end_index:{end_index}")
+        samples_temp  = samples[start_index:end_index]
+        data_x, data_y = get_list_element_count(samples_temp)
+        fig = plt.figure()
+        plt.scatter(data_x,data_y,s=dotsize,c='red',label=f"draw_samples_{draw_n}")
+        plt.savefig(f"{data_x_min}_{data_x_max}_{degree}_{file_name}_{sample_n}_draw_samples_{draw_n}.png")
+        draw_n += 1
+        start_index +=  sample_split
+        if end_index >= len(samples)-1 :
+            break
+
+
+
+
 
 
 
 
 if __name__ == '__main__':
     degree = 20
-    data_x_min = 1
+    data_x_min = 19
     data_x_max = 1000
-    sample_n = 100000
+    sample_n = 5000
     dotsize = 5
+    judge_n = 2
+
 
     padding_data = 1
     padding_x_1 = -10
@@ -135,6 +180,8 @@ if __name__ == '__main__':
     print(f"data_y_list:{data_y_list}")
     print(f"data_y_max:{data_y_max}")
     samples = get_sampling(poly_reg,data_y_max,sample_n)
+    print(f"samples len:{len(samples)}")
+
     sample_x,sample_y,sample_y_count = get_samples_x_y(samples)
     #
     fig,(ax1,ax2) = plt.subplots(2,1,figsize=(30,10))
@@ -159,4 +206,8 @@ if __name__ == '__main__':
     plt.savefig(f"{data_x_min}_{data_x_max}_{degree}_{file_name}_{sample_n}.png")
     plt.show()
     write_samples(samples)
+
+    # 针对采样数据，选取连续的个数，观察分布
+    sample_split = 5000
+    draw_samples(sample_split)
 
