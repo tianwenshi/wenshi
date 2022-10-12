@@ -156,9 +156,9 @@ def draw_samples(sample_split):
 
 if __name__ == '__main__':
     degree = 20
-    data_x_min = 19
+    data_x_min = 21
     data_x_max = 1000
-    sample_n = 5000
+    sample_n = 50000
     dotsize = 5
     judge_n = 2
 
